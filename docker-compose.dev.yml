@@ -1,0 +1,18 @@
+name: nivona-dev
+
+services:
+  dev:
+    image: node:22-alpine
+    container_name: nivona-dev
+    hostname: nivona-dev
+    working_dir: /app
+    command: ['node', 'server.mjs']
+    environment:
+      PORT: '8765'
+    volumes:
+      # HOST_DIR erlaubt das Starten aus claude-box heraus (dort heißt der Pfad /projects/nivona).
+      - ${HOST_DIR:-.}:/app
+    # Web Bluetooth verlangt einen secure context -> direkt über localhost öffnen,
+    # nicht über nginx-proxy (*.test ist http und damit nicht "secure").
+    ports:
+      - '127.0.0.1:8765:8765'

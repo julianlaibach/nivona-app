@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#15022d" />
+  <title>NIVONA App</title>
+  <link rel="icon" href="assets/logo.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,600;1,400&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
+  <link rel="stylesheet" href="css/app.css" />
+  <script type="module" src="js/main.js"></script>
+</head>
+<body>
+  <div class="stage">
+    <!-- Links: Einordnung + Simulator-Steuerung -->
+    <aside class="side">
+      <span class="logo" id="sideLogo"></span>
+      <h2>Die NIVONA App –<br />als Simulation im Browser.</h2>
+      <p>Verbindet sich per Web Bluetooth mit Deiner NIVO – oder läuft im Demo-Modus mit einer virtuellen NIVO 9'000. Später als native App mit Widgets, Live-Aktivität und Benachrichtigungen.</p>
+      <div class="side-card" id="simPanel">
+        <h4>Demo-Steuerung</h4>
+        <p>Simuliert Meldungen der Maschine.</p>
+        <div class="chips">
+          <button class="chip-btn" data-sim="4">Wasser leer</button>
+          <button class="chip-btn" data-sim="6">Bohnen leer</button>
+          <button class="chip-btn" data-sim="3">Schalen leeren</button>
+          <button class="chip-btn" data-sim="0">Alles ok</button>
+        </div>
+        <div class="chips">
+          <button class="chip-btn" id="simBeansLow">Bohnen fast leer</button>
+          <button class="chip-btn" id="simReset">App zurücksetzen</button>
+        </div>
+      </div>
+      <small>Expertenansicht mit Protokoll-Log: <a href="../">Demo-Konsole</a></small>
+    </aside>
+
+    <!-- Telefon -->
+    <div class="phone">
+      <div class="screen" id="screen">
+        <div class="statusbar" id="statusbar">
+          <span id="clock">9:41</span>
+          <span class="sb-icons">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" y="0" width="3" height="11" rx="1"/></svg>
+            <i></i>
+          </span>
+        </div>
+        <div class="island" id="island">
+          <span class="isl-left"><span class="logo" id="islandLogo"></span><span id="islandText">Brüht</span></span>
+          <span class="isl-ring" id="islandRing"></span>
+        </div>
+        <div id="app"></div>
+        <div class="homebar"></div>
+      </div>
+    </div>
+
+    <!-- Rechts: Widget-Vorschau -->
+    <aside class="side right">
+      <div class="side-card">
+        <h4>Vorschau: Widgets &amp; Live-Aktivität</h4>
+        <p>So erscheint die Maschine später auf dem Home- und Sperrbildschirm. Die Werte sind live.</p>
+      </div>
+      <div class="widgets" id="widgets"></div>
+    </aside>
+  </div>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nivona BLE Demo</title>
+  <link rel="stylesheet" href="css/app.css" />
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">☕</span>
+      <div>
+        <h1>Nivona BLE Demo</h1>
+        <p class="sub">Web Bluetooth · Eugster-Protokoll (AD00)</p>
+      </div>
+    </div>
+    <div class="conn">
+      <span id="connPill" class="pill pill-idle">getrennt</span>
+      <label class="check" title="Zeigt alle BLE-Geräte, falls die Maschine nicht im gefilterten Dialog auftaucht">
+        <input type="checkbox" id="acceptAll" /> alle Geräte
+      </label>
+      <button id="btnConnect" class="btn primary">Verbinden</button>
+      <button id="btnDisconnect" class="btn" hidden>Trennen</button>
+    </div>
+  </header>
+
+  <div id="unsupported" class="banner warn" hidden>
+    Dieser Browser unterstützt kein Web Bluetooth. Bitte Chrome oder Edge (Desktop/Android) verwenden und die Seite über
+    <code>http://localhost</code> oder HTTPS öffnen.
+  </div>
+  <div id="progress" class="banner info" hidden></div>
+  <div id="error" class="banner error" hidden></div>
+
+  <main class="grid">
+    <!-- Maschine -->
+    <section class="card" id="cardMachine">
+      <h2>Maschine</h2>
+      <dl class="kv" id="machineInfo">
+        <dt>Status</dt><dd>nicht verbunden</dd>
+      </dl>
+      <div class="row">
+        <label for="familySelect">Modellfamilie</label>
+        <select id="familySelect" disabled></select>
+      </div>
+      <p class="hint" id="familyHint"></p>
+    </section>
+
+    <!-- Status -->
+    <section class="card" id="cardStatus">
+      <h2>Prozessstatus <small>HX</small></h2>
+      <div id="statusBig" class="status status-idle">—</div>
+      <dl class="kv compact" id="statusDetail"></dl>
+      <div class="row wrap">
+        <label class="check"><input type="checkbox" id="pollToggle" checked /> automatisch abfragen</label>
+        <button class="btn" data-needs="session" id="btnStatus">Jetzt lesen</button>
+      </div>
+      <div class="row wrap">
+        <button class="btn confirm" data-needs="session" id="btnConfirm" title="HY – bestätigt eine Aufforderung der Maschine (z. B. Spülen, Ventil öffnen)">Bestätigen</button>
+        <button class="btn danger" data-needs="session" id="btnCancel" title="HZ – bricht den laufenden Prozess ab">Prozess abbrechen</button>
+      </div>
+    </section>
+
+    <!-- Getränke -->
+    <section class="card span2" id="cardBrew">
+      <h2>Getränke <small>HR/HW 9001 + HE</small></h2>
+      <div id="recipes" class="tiles"><p class="hint">Nach dem Verbinden erscheinen hier die Getränke der Maschine.</p></div>
+      <div id="recipeEditor" class="editor" hidden>
+        <div class="editor-head">
+          <h3 id="editorTitle"></h3>
+          <button class="btn ghost" id="btnEditorClose" aria-label="Schließen">✕</button>
+        </div>
+        <p class="hint">Werte stammen aus dem Standardrezept der Maschine (Register 10000 + Auswahl × 100). Beim Brühen werden sie in den temporären Rezeptspeicher (9001 ff.) geschrieben – das gespeicherte Rezept bleibt unverändert.</p>
+        <div id="editorFields" class="fields"></div>
+        <div class="row wrap">
+          <button class="btn primary" data-needs="session" id="btnBrewCustom">Mit diesen Werten zubereiten</button>
+          <button class="btn" data-needs="session" id="btnBrewPlain" title="Nur 9001 = Auswahl schreiben und HE senden">Ohne Anpassung zubereiten</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Einstellungen -->
+    <section class="card" id="cardSettings">
+      <h2>Einstellungen <small>HR/HW</small></h2>
+      <div class="row"><button class="btn" data-needs="session" id="btnReadSettings">Alle lesen</button></div>
+      <table class="table" id="settingsTable"><tbody></tbody></table>
+    </section>
+
+    <!-- Statistik -->
+    <section class="card" id="cardStats">
+      <h2>Statistik &amp; Wartung <small>HR</small></h2>
+      <div class="row"><button class="btn" data-needs="session" id="btnReadStats">Alle lesen</button></div>
+      <p class="hint" id="statsHint"></p>
+      <table class="table" id="statsTable"><tbody></tbody></table>
+    </section>
+
+    <!-- MyCoffee -->
+    <section class="card" id="cardMyCoffee">
+      <h2>MyCoffee <small>HA/HR 20000+</small></h2>
+      <div class="row"><button class="btn" data-needs="session" id="btnReadMyCoffee">Slots lesen</button></div>
+      <table class="table" id="myCoffeeTable"><tbody></tbody></table>
+    </section>
+
+    <!-- Experten -->
+    <section class="card" id="cardExpert">
+      <h2>Experten &amp; Wartungsprozesse</h2>
+      <details open>
+        <summary>Prozess starten <small>HE</small></summary>
+        <p class="hint">Direktform <code>[00, Prozess, 00, Typ, 00…]</code>. Die Prozess-IDs für Spülen, Reinigen und Entkalken sind je Modell verschieden und in der Doku nicht vollständig belegt – nur mit Bedacht ausprobieren.</p>
+        <div class="row wrap">
+          <label>Prozess <input type="number" id="procId" min="0" max="255" value="98" class="num" /></label>
+          <label>Typ <input type="number" id="procType" min="0" max="255" value="0" class="num" /></label>
+          <button class="btn" data-needs="session" id="btnProcess">Starten</button>
+          <button class="btn" data-needs="session" id="btnReturnHome" hidden>JOB_RETURN_HOME</button>
+        </div>
+        <div class="row">
+          <label>Brüh-Modus (HE Byte 1)
+            <select id="brewMode"><option value="11">0x0B (Standard)</option><option value="4">0x04 (NIVO 8000)</option></select>
+          </label>
+        </div>
+      </details>
+      <details>
+        <summary>Register direkt</summary>
+        <div class="row wrap">
+          <label>Register <input type="number" id="regId" min="0" max="65535" value="213" class="num" /></label>
+          <label>Wert <input type="number" id="regValue" value="0" class="num" /></label>
+        </div>
+        <div class="row wrap">
+          <button class="btn" data-needs="session" id="btnRegRead">HR lesen</button>
+          <button class="btn" data-needs="session" id="btnRegWrite">HW schreiben</button>
+          <button class="btn" data-needs="session" id="btnRegString">HA (Text) lesen</button>
+          <button class="btn" data-needs="session" id="btnRegDefault" title="HD – Register auf Werkswert">HD Standard</button>
+        </div>
+        <output id="regOut" class="out"></output>
+      </details>
+      <details>
+        <summary>Roh-Frame senden</summary>
+        <div class="row wrap">
+          <label>Kommando <input id="rawCmd" value="HX" maxlength="2" class="num" /></label>
+          <label class="grow">Payload (hex) <input id="rawPayload" placeholder="z. B. 00 D5" /></label>
+        </div>
+        <div class="row wrap">
+          <label class="check"><input type="checkbox" id="rawEncrypt" checked /> verschlüsselt</label>
+          <label class="check"><input type="checkbox" id="rawSession" checked /> mit Session</label>
+          <button class="btn" data-needs="connected" id="btnRaw">Senden</button>
+        </div>
+        <output id="rawOut" class="out"></output>
+      </details>
+      <details>
+        <summary>Diagnose</summary>
+        <div class="row wrap">
+          <button class="btn" data-needs="connected" id="btnPing">Ping (Hp)</button>
+          <button class="btn" data-needs="connected" id="btnHandshake">HU neu</button>
+          <button class="btn" data-needs="session" id="btnFeatures">Features (HI)</button>
+          <button class="btn" id="btnSelfTest">Protokoll-Selbsttest</button>
+        </div>
+        <output id="diagOut" class="out"></output>
+      </details>
+      <details>
+        <summary>Werkseinstellungen</summary>
+        <p class="hint">Setzt Einstellungen bzw. alle Rezepte der Maschine unwiderruflich zurück.</p>
+        <div class="row wrap">
+          <button class="btn danger" data-needs="session" id="btnResetSettings">Einstellungen zurücksetzen</button>
+          <button class="btn danger" data-needs="session" id="btnResetRecipes">Rezepte zurücksetzen</button>
+        </div>
+      </details>
+    </section>
+
+    <!-- Log -->
+    <section class="card span2" id="cardLog">
+      <div class="log-head">
+        <h2>Protokoll-Log</h2>
+        <div class="row">
+          <label class="check"><input type="checkbox" id="logRaw" /> Roh-Notifications</label>
+          <button class="btn ghost" id="btnLogCopy">Kopieren</button>
+          <button class="btn ghost" id="btnLogClear">Leeren</button>
+        </div>
+      </div>
+      <ol id="log" class="log"></ol>
+    </section>
+  </main>
+
+  <footer class="foot">
+    Protokoll nach <a href="https://github.com/mpapierski/esp-coffee-bridge/blob/main/docs/NIVONA.md" target="_blank" rel="noopener">mpapierski/esp-coffee-bridge · docs/NIVONA.md</a>.
+    Inoffizielle Demo, keine Verbindung zu Nivona/Eugster.
+  </footer>
+</body>
+</html>

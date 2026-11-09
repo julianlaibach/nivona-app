@@ -1,0 +1,11 @@
+{
+  "name": "nivona-ble-demo",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Web-Bluetooth-Demo zur Steuerung von Nivona-Kaffeevollautomaten",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test tests/"
+  }
+}
